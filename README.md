@@ -98,6 +98,13 @@ CREATE TABLE prenotazioni (
     FOREIGN KEY (utente_id) REFERENCES utenti(id) ON DELETE CASCADE,
     FOREIGN KEY (laboratorio_id) REFERENCES laboratori(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE sessioni (
+	id int AUTO_INCREMENT PRIMARY KEY,
+	sessione_id varchar(50) NOT NULL,
+	username varchar(50) NOT NULL,
+	last_seen datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
 
