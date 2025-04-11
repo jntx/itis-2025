@@ -50,6 +50,9 @@ export const useAuthModule = defineStore('auth', {
         this.sessionId = null
         this.isAuthenticated = false
         localStorage.removeItem('sessionId')
+        
+        // Reset other store modules
+        this.resetOtherStores()
       }
     },
     
@@ -60,6 +63,20 @@ export const useAuthModule = defineStore('auth', {
         this.sessionId = sessionId
         this.isAuthenticated = true
       }
+    },
+    
+    // Reset all other store modules
+    resetOtherStores() {
+      // Import dynamically to avoid circular dependencies
+      import('./labModule').then(module => {
+        const labStore = module.useLabModule()
+        labStore.resetState()
+      })
+      
+      import('./prenotazioneModule').then(module => {
+        const prenotazioneStore = module.usePrenotazioneModule()
+        prenotazioneStore.resetState()
+      })
     }
   }
 })

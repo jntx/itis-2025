@@ -1,6 +1,22 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthModule } from '@/stores/authModule'
+
+const authStore = useAuthModule()
+const router = useRouter()
+
+// Initialize authentication state on app startup
+onMounted(() => {
+  authStore.initAuth()
+})
+
+// Handle logout
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -11,8 +27,14 @@ import HelloWorld from './components/HelloWorld.vue'
       <!-- <HelloWorld msg="Avviato!" /> -->
 
       <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/lab">Laboratori</RouterLink>
+        <template v-if="authStore.isLoggedIn">
+          <RouterLink to="/">Home</RouterLink>
+          <RouterLink to="/lab">Laboratori</RouterLink>
+          <a href="#" @click.prevent="handleLogout" class="logout-link">Logout</a>
+        </template>
+        <template v-else>
+          <RouterLink to="/login">Login</RouterLink>
+        </template>
       </nav>
     </div>
   </header>
@@ -54,6 +76,14 @@ nav a {
 
 nav a:first-of-type {
   border: 0;
+}
+
+.logout-link {
+  color: #e74c3c;
+}
+
+.logout-link:hover {
+  color: #c0392b;
 }
 
 @media (min-width: 1024px) {
