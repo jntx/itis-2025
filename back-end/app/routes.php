@@ -62,7 +62,7 @@ return function (App $app) {
 		$stmt->bindParam(':sessione_id', $session_id, PDO::PARAM_STR);
 		$stmt->bindParam(':last_seen', $current_time, PDO::PARAM_STR);
 		$stmt->execute();
-		$id = $this->db->lastInsertId();
+		$id = $this->get("db")->lastInsertId();
 
 		$stmt = $this->get("db")->prepare("SELECT * FROM sessioni WHERE id = :id");
 		$stmt->bindParam(':id', $id, PDO::PARAM_STR);
@@ -143,7 +143,7 @@ return function (App $app) {
 		$stmt->bindParam(':data_fine', isset($data["data_fine"]) ? $data["data_fine"] : null, PDO::PARAM_STR);
 
 		$stmt->execute();
-		$laboratorio_id = $this->db->lastInsertId();
+		$laboratorio_id = $this->get("db")->lastInsertId();
 		
 		$response->getBody()->write(json_encode(['success' => true, 'id' => $laboratorio_id]));
 		return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
@@ -227,7 +227,7 @@ return function (App $app) {
 		$stmt->bindParam(':ora_fine', $ora_fine);
 		
 		$stmt->execute();
-		$prenotazione_id = $this->db->lastInsertId();
+		$prenotazione_id = $this->get("db")->lastInsertId();
 		
 		$response->getBody()->write(json_encode(['success' => true, 'prenotazione_id' => $prenotazione_id]));
 		return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
