@@ -1,0 +1,445 @@
+openapi: 3.0.0
+info:
+  title: Gestione Laboratori ITIS API
+  description: API per la gestione dei laboratori e delle prenotazioni
+  version: 1.0.0
+  contact:
+    email: support@itis-example.com
+servers:
+  - url: /
+    description: Server principale
+paths:
+  /:
+    get:
+      summary: Hello World
+      description: Ritorna un semplice messaggio di saluto
+      responses:
+        '200':
+          description: Operazione completata con successo
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello world!
+  
+  /hello/{name}:
+    get:
+      summary: Saluto personalizzato
+      description: Ritorna un messaggio di saluto personalizzato con il nome fornito
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Nome della persona da salutare
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Operazione completata con successo
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello, John
+  
+  /api/login:
+    post:
+      summary: Login utente
+      description: Effettua il login di un utente con le credenziali fornite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Username dell'utente
+                password:
+                  type: string
+                  description: Password dell'utente
+                  format: password
+      responses:
+        '200':
+          description: Login effettuato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessione_id:
+                    type: string
+                    description: ID univoco della sessione
+        '400':
+          description: Dati mancanti o non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/logout/{sessione_id}:
+    get:
+      summary: Logout utente
+      description: Effettua il logout di un utente eliminando la sessione specificata
+      parameters:
+        - name: sessione_id
+          in: path
+          required: true
+          description: ID della sessione da eliminare
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Logout effettuato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+  
+  /api/laboratori:
+    get:
+      summary: Lista dei laboratori
+      description: Ottiene l'elenco completo dei laboratori disponibili
+      responses:
+        '200':
+          description: Elenco dei laboratori ottenuto con successo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Laboratorio'
+    
+    post:
+      summary: Crea laboratorio
+      description: Crea un nuovo laboratorio con i dati forniti
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaboratorioInput'
+      responses:
+        '201':
+          description: Laboratorio creato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  id:
+                    type: integer
+                    description: ID del laboratorio creato
+        '400':
+          description: Dati mancanti o non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/laboratori/{id}:
+    get:
+      summary: Dettagli laboratorio
+      description: Ottiene i dettagli di un laboratorio specifico tramite il suo ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del laboratorio
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettagli del laboratorio ottenuti con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Laboratorio'
+        '404':
+          description: Laboratorio non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      summary: Aggiorna laboratorio
+      description: Aggiorna i dettagli di un laboratorio esistente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del laboratorio da aggiornare
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaboratorioInput'
+      responses:
+        '200':
+          description: Laboratorio aggiornato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  id:
+                    type: integer
+                    description: ID del laboratorio aggiornato
+        '400':
+          description: Dati mancanti o non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Laboratorio non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/prenotazioni/{id}:
+    get:
+      summary: Prenotazioni per laboratorio
+      description: Ottiene l'elenco delle prenotazioni per un laboratorio specifico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del laboratorio
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Elenco delle prenotazioni ottenuto con successo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prenotazione'
+  
+  /api/prenotazioni:
+    post:
+      summary: Crea prenotazione
+      description: Crea una nuova prenotazione per un laboratorio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrenotazioneInput'
+      responses:
+        '201':
+          description: Prenotazione creata con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  prenotazione_id:
+                    type: integer
+                    description: ID della prenotazione creata
+        '400':
+          description: Dati mancanti o non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID univoco dell'utente
+        username:
+          type: string
+          description: Nome utente per il login
+          maxLength: 50
+        password:
+          type: string
+          description: Password dell'utente (memorizzata in forma hash)
+          format: password
+          maxLength: 255
+        email:
+          type: string
+          description: Email dell'utente
+          format: email
+          maxLength: 100
+        ruolo:
+          type: string
+          description: Indica il tipo di utente
+          enum: ['studente', 'admin']
+        created_at:
+          type: string
+          format: date-time
+          description: Data di creazione dell'account
+    
+    Laboratorio:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID univoco del laboratorio
+        nome:
+          type: string
+          description: Nome del laboratorio
+        descrizione:
+          type: string
+          description: Descrizione del laboratorio
+        capacita:
+          type: integer
+          description: Capacità massima del laboratorio (numero di persone)
+        orario_apertura:
+          type: string
+          format: time
+          description: Orario di apertura del laboratorio
+          nullable: true
+        orario_chiusura:
+          type: string
+          format: time
+          description: Orario di chiusura del laboratorio
+          nullable: true
+        data_inizio:
+          type: string
+          format: date
+          description: Data di inizio disponibilità del laboratorio
+          nullable: true
+        data_fine:
+          type: string
+          format: date
+          description: Data di fine disponibilità del laboratorio
+          nullable: true
+    
+    LaboratorioInput:
+      type: object
+      required:
+        - nome
+        - descrizione
+        - capacita
+      properties:
+        nome:
+          type: string
+          description: Nome del laboratorio
+        descrizione:
+          type: string
+          description: Descrizione del laboratorio
+        capacita:
+          type: integer
+          description: Capacità massima del laboratorio (numero di persone)
+        orario_apertura:
+          type: string
+          format: time
+          description: Orario di apertura del laboratorio
+          nullable: true
+        orario_chiusura:
+          type: string
+          format: time
+          description: Orario di chiusura del laboratorio
+          nullable: true
+        data_inizio:
+          type: string
+          format: date
+          description: Data di inizio disponibilità del laboratorio
+          nullable: true
+        data_fine:
+          type: string
+          format: date
+          description: Data di fine disponibilità del laboratorio
+          nullable: true
+    
+    Prenotazione:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID univoco della prenotazione
+        utente_id:
+          type: integer
+          description: ID dell'utente che ha effettuato la prenotazione
+        laboratorio_id:
+          type: integer
+          description: ID del laboratorio prenotato
+        data_prenotazione:
+          type: string
+          format: date
+          description: Data della prenotazione
+        ora_inizio:
+          type: string
+          format: time
+          description: Ora di inizio della prenotazione
+          nullable: true
+        ora_fine:
+          type: string
+          format: time
+          description: Ora di fine della prenotazione
+          nullable: true
+        stato:
+          type: string
+          enum: [in attesa, confermata, annullata]
+          description: Stato della prenotazione
+    
+    PrenotazioneInput:
+      type: object
+      required:
+        - utente_id
+        - laboratorio_id
+        - data_prenotazione
+      properties:
+        utente_id:
+          type: integer
+          description: ID dell'utente che effettua la prenotazione
+        laboratorio_id:
+          type: integer
+          description: ID del laboratorio da prenotare
+        data_prenotazione:
+          type: string
+          format: date
+          description: Data della prenotazione
+        ora_inizio:
+          type: string
+          format: time
+          description: Ora di inizio della prenotazione
+          nullable: true
+        ora_fine:
+          type: string
+          format: time
+          description: Ora di fine della prenotazione
+          nullable: true
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Messaggio di errore
