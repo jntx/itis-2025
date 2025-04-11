@@ -1,19 +1,19 @@
 <script setup>
-	import { ref } from 'vue';
-	const contatore = ref(0);
+	import { onBeforeMount, ref } from 'vue';
+	import { labService } from '@/service/lab.service';
 
-	function incrementa() {
-		contatore.value++;
-	}
+	onBeforeMount(() => {
+		labService.retrieveAll("1234");
+	})
 </script>
 <template>
-  <div class="about">
+  <!-- <div class="about">
     <h1>{{ contatore }}</h1>
 	<h1>{{ contatore }}</h1>
 	<h1>{{ contatore }}</h1>
 	<h1>{{ contatore }}</h1>
 	<h1><button @click="incrementa()">Incrementa</button></h1>
-  </div>
+  </div> -->
 </template>
 
 <style>
