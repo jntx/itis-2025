@@ -46,7 +46,8 @@ return function (App $app) {
 		$password = $data['password'];
 		$stmt = $this->get("db")->prepare("SELECT * FROM utenti WHERE username = :username and password = :password");
 		$stmt->bindParam(':username', $username, PDO::PARAM_STR);
-		$stmt->bindParam(':password', sha1($password), PDO::PARAM_STR);
+		$hashed_password = sha1($password);
+		$stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
 		$stmt->execute();
 		$utente = $stmt->fetch(PDO::FETCH_ASSOC);
 		if (!$utente) {
@@ -54,10 +55,12 @@ return function (App $app) {
 			return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
 		}
 
-		$stmt = $this->get("db")->prepare("INSERT INTO sessioni (sessione_id, username, last_seen) VALUES (:sessione_id, :username, :last_seen");
+		$stmt = $this->get("db")->prepare("INSERT INTO sessioni (sessione_id, username, last_seen) VALUES (:sessione_id, :username, :last_seen)");
 		$stmt->bindParam(':username', $username, PDO::PARAM_STR);
-		$stmt->bindParam(':sessione_id', uniqid("", true), PDO::PARAM_STR);
-		$stmt->bindParam(':last_seen', date("Y-m-d H:i:s"), PDO::PARAM_STR);
+		$session_id = uniqid("", true);
+		$current_time = date("Y-m-d H:i:s");
+		$stmt->bindParam(':sessione_id', $session_id, PDO::PARAM_STR);
+		$stmt->bindParam(':last_seen', $current_time, PDO::PARAM_STR);
 		$stmt->execute();
 		$id = $this->db->lastInsertId();
 
