@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LabView from '@/views/LabView.vue'
 import LoginView from '@/views/LoginView.vue'
+import PrenotazioniView from '@/views/PrenotazioniView.vue'
 import { useAuthModule } from '@/stores/authModule'
 
 const router = createRouter({
@@ -17,6 +18,12 @@ const router = createRouter({
       path: '/lab',
       name: 'laboratori',
       component: LabView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/prenotazioni/:id',
+      name: 'prenotazioni',
+      component: PrenotazioniView,
       meta: { requiresAuth: true }
     },
     {

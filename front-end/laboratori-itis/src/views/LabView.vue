@@ -1,7 +1,11 @@
 <script setup>
 import { onMounted, ref, reactive, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useLabModule } from '@/stores/labModule';
 import { useAuthModule } from '@/stores/authModule';
+
+// Router
+const router = useRouter();
 
 // Store
 const labStore = useLabModule();
@@ -58,6 +62,10 @@ function openViewModal(laboratorio) {
   selectedLaboratorio.value = laboratorio;
   modalMode.value = 'view';
   showModal.value = true;
+}
+
+function navigateToPrenotazioni(laboratorioId) {
+  router.push({ name: 'prenotazioni', params: { id: laboratorioId } });
 }
 
 function openCreateModal() {
@@ -224,6 +232,9 @@ function formatDate(dateString) {
               <button @click="openEditModal(lab)" class="btn-icon btn-edit" title="Modifica">
                 ✏️
               </button>
+              <button @click="navigateToPrenotazioni(lab.id)" class="btn-icon btn-prenotazioni" title="Visualizza prenotazioni">
+                📅
+              </button>
             </td>
           </tr>
         </tbody>
@@ -263,6 +274,12 @@ function formatDate(dateString) {
           </div>
           <div class="detail-item">
             <strong>Disponibile fino al:</strong> {{ selectedLaboratorio.data_fine ? formatDate(selectedLaboratorio.data_fine) : 'Non specificato' }}
+          </div>
+          
+          <div class="detail-actions">
+            <button @click="navigateToPrenotazioni(selectedLaboratorio.id)" class="btn-secondary">
+              Visualizza prenotazioni
+            </button>
           </div>
         </div>
         
@@ -471,6 +488,10 @@ function formatDate(dateString) {
   color: #f39c12;
 }
 
+.btn-prenotazioni:hover {
+  color: #3498db;
+}
+
 /* Loading state */
 .loading-container {
   display: flex;
@@ -559,6 +580,12 @@ function formatDate(dateString) {
 /* Detail view */
 .detail-item {
   margin-bottom: 1rem;
+}
+
+.detail-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .detail-item strong {
