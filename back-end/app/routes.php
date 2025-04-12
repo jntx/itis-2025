@@ -137,10 +137,10 @@ return function (App $app) {
 		$stmt->bindParam(':nome', $data["nome"], PDO::PARAM_STR);
 		$stmt->bindParam(':descrizione', $data["descrizione"], PDO::PARAM_STR);
 		$stmt->bindParam(':capacita', $data["capacita"], PDO::PARAM_INT);
-		$orario_apertura = isset($data["orario_apertura"]) ? $data["orario_apertura"] : null;
-		$orario_chiusura = isset($data["orario_chiusura"]) ? $data["orario_chiusura"] : null;
-		$data_inizio = isset($data["data_inizio"]) ? $data["data_inizio"] : null;
-		$data_fine = isset($data["data_fine"]) ? $data["data_fine"] : null;
+		$orario_apertura = isset($data["orario_apertura"]) && $data["orario_apertura"] !== '' ? $data["orario_apertura"] : null;
+		$orario_chiusura = isset($data["orario_chiusura"]) && $data["orario_chiusura"] !== '' ? $data["orario_chiusura"] : null;
+		$data_inizio = isset($data["data_inizio"]) && $data["data_inizio"] !== '' ? $data["data_inizio"] : null;
+		$data_fine = isset($data["data_fine"]) && $data["data_fine"] !== '' ? $data["data_fine"] : null;
 		
 		$stmt->bindParam(':orario_apertura', $orario_apertura, PDO::PARAM_STR);
 		$stmt->bindParam(':orario_chiusura', $orario_chiusura, PDO::PARAM_STR);
