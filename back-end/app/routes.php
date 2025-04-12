@@ -137,10 +137,15 @@ return function (App $app) {
 		$stmt->bindParam(':nome', $data["nome"], PDO::PARAM_STR);
 		$stmt->bindParam(':descrizione', $data["descrizione"], PDO::PARAM_STR);
 		$stmt->bindParam(':capacita', $data["capacita"], PDO::PARAM_INT);
-		$stmt->bindParam(':orario_apertura', isset($data["orario_apertura"]) ? $data["orario_apertura"] : null, PDO::PARAM_STR);
-		$stmt->bindParam(':orario_chiusura', isset($data["orario_chiusura"]) ? $data["orario_chiusura"] : null, PDO::PARAM_STR);
-		$stmt->bindParam(':data_inizio', isset($data["data_inizio"]) ? $data["data_inizio"] : null, PDO::PARAM_STR);
-		$stmt->bindParam(':data_fine', isset($data["data_fine"]) ? $data["data_fine"] : null, PDO::PARAM_STR);
+		$orario_apertura = isset($data["orario_apertura"]) ? $data["orario_apertura"] : null;
+		$orario_chiusura = isset($data["orario_chiusura"]) ? $data["orario_chiusura"] : null;
+		$data_inizio = isset($data["data_inizio"]) ? $data["data_inizio"] : null;
+		$data_fine = isset($data["data_fine"]) ? $data["data_fine"] : null;
+		
+		$stmt->bindParam(':orario_apertura', $orario_apertura, PDO::PARAM_STR);
+		$stmt->bindParam(':orario_chiusura', $orario_chiusura, PDO::PARAM_STR);
+		$stmt->bindParam(':data_inizio', $data_inizio, PDO::PARAM_STR);
+		$stmt->bindParam(':data_fine', $data_fine, PDO::PARAM_STR);
 
 		$stmt->execute();
 		$laboratorio_id = $this->get("db")->lastInsertId();
@@ -182,10 +187,15 @@ return function (App $app) {
 		$stmt->bindParam(':nome', $data["nome"], PDO::PARAM_STR);
 		$stmt->bindParam(':descrizione', $data["descrizione"], PDO::PARAM_STR);
 		$stmt->bindParam(':capacita', $data["capacita"], PDO::PARAM_INT);
-		$stmt->bindParam(':orario_apertura', isset($data["orario_apertura"]) ? $data["orario_apertura"] : null, PDO::PARAM_STR);
-		$stmt->bindParam(':orario_chiusura', isset($data["orario_chiusura"]) ? $data["orario_chiusura"] : null, PDO::PARAM_STR);
-		$stmt->bindParam(':data_inizio', isset($data["data_inizio"]) ? $data["data_inizio"] : null, PDO::PARAM_STR);
-		$stmt->bindParam(':data_fine', isset($data["data_fine"]) ? $data["data_fine"] : null, PDO::PARAM_STR);
+		$orario_apertura = isset($data["orario_apertura"]) ? $data["orario_apertura"] : null;
+		$orario_chiusura = isset($data["orario_chiusura"]) ? $data["orario_chiusura"] : null;
+		$data_inizio = isset($data["data_inizio"]) ? $data["data_inizio"] : null;
+		$data_fine = isset($data["data_fine"]) ? $data["data_fine"] : null;
+		
+		$stmt->bindParam(':orario_apertura', $orario_apertura, PDO::PARAM_STR);
+		$stmt->bindParam(':orario_chiusura', $orario_chiusura, PDO::PARAM_STR);
+		$stmt->bindParam(':data_inizio', $data_inizio, PDO::PARAM_STR);
+		$stmt->bindParam(':data_fine', $data_fine, PDO::PARAM_STR);
 		$stmt->execute();
 		
 		$response->getBody()->write(json_encode(['success' => true, 'id' => $id]));
@@ -194,8 +204,9 @@ return function (App $app) {
 	
 	$app->get('/api/prenotazioni/{id}', function (Request $request, Response $response, array $args) {
 		$id = $args['id'];
-		$stmt = $this->get("db")->query("SELECT * FROM prenotazioni WHERE laboratorio_id = :id");
+		$stmt = $this->get("db")->prepare("SELECT * FROM prenotazioni WHERE laboratorio_id = :id");
 		$stmt->bindParam(':id', $id, PDO::PARAM_INT);
+		$stmt->execute();
 		$prenotazioni = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	
 		$response->getBody()->write(json_encode($prenotazioni));
