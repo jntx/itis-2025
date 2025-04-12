@@ -23,11 +23,9 @@ async function handleLogin() {
   try {
     error.value = ''
     isLoading.value = true
-    
     await authStore.login(credentials)
-    
-    // Redirect to home page after successful login
-    router.push('/')
+    // Redirect to laboratori page after successful login
+    router.push('/lab')
   } catch (err) {
     error.value = err.response?.data?.message || 'Login fallito. Riprova.'
   } finally {
@@ -65,6 +63,13 @@ async function handleLogin() {
       
       <div v-if="error" class="error-message">
         {{ error }}
+      </div>
+
+      <div v-if="authStore" class="info-message">
+        {{ authStore }}
+        {{ authStore.isAuthenticated }}
+        {{ authStore.isLoggedIn }}
+        {{ authStore.isLoading }}
       </div>
       
       <button type="submit" :disabled="isLoading" class="login-button">

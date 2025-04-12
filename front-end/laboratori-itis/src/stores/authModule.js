@@ -20,9 +20,9 @@ export const useAuthModule = defineStore('auth', {
       try {
         this.error = null
         const response = await authService.login(credentials)
-        
-        if (response.data && response.data.sessionId) {
-          this.sessionId = response.data.sessionId
+
+        if (response.data && response.data.sessione_id) {
+          this.sessionId = response.data.sessione_id
           this.user = response.data.user || { username: credentials.username }
           this.isAuthenticated = true
           
