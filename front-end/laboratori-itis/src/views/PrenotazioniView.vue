@@ -143,6 +143,9 @@ async function handleSubmit() {
       ora_fine: formData.ora_fine || null
     });
     
+    // Explicitly refresh the list of reservations after creating a new one
+    await prenotazioneStore.fetchPrenotazioniByLaboratorio(laboratorioId.value);
+    
     closeModal();
   } catch (error) {
     console.error('Errore durante il salvataggio della prenotazione:', error);

@@ -56,8 +56,8 @@ export const usePrenotazioneModule = defineStore('prenotazione', {
         const response = await prenotazioneService.create(prenotazione, sessionId)
         
         // Refresh the list after creation if we have a laboratorio ID
-        if (prenotazione.laboratorioId) {
-          await this.fetchPrenotazioniByLaboratorio(prenotazione.laboratorioId)
+        if (prenotazione.laboratorio_id) {
+          await this.fetchPrenotazioniByLaboratorio(prenotazione.laboratorio_id)
         }
         
         return response
