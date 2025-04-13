@@ -179,7 +179,7 @@ function getStatusClass(stato) {
 </script>
 
 <template>
-  <div class="prenotazioni-container">
+  <div class="container">
     <div class="header-section">
       <div class="title-section">
         <button @click="tornaAiLaboratori" class="btn-back">
@@ -234,7 +234,7 @@ function getStatusClass(stato) {
     
     <!-- Data table -->
     <div v-else class="table-container">
-      <table class="prenotazioni-table">
+      <table class="data-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -329,58 +329,7 @@ function getStatusClass(stato) {
 </template>
 
 <style scoped>
-.prenotazioni-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.title-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.btn-back {
-  background: none;
-  border: none;
-  color: #2c3e50;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.btn-back:hover {
-  text-decoration: underline;
-}
-
-.actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.search-container {
-  position: relative;
-}
-
-.search-input {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 250px;
-}
-
-/* Lab details */
+/* Component-specific styles only */
 .lab-details {
   background-color: #f8fafc;
   border-radius: 8px;
@@ -402,215 +351,7 @@ function getStatusClass(stato) {
   gap: 2rem;
 }
 
-/* Table styles */
-.table-container {
-  overflow-x: auto;
-}
-
-.prenotazioni-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-.prenotazioni-table th,
-.prenotazioni-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.prenotazioni-table th {
-  background-color: #f8fafc;
-  font-weight: bold;
-}
-
-.prenotazioni-table tr:hover {
-  background-color: #f1f5f9;
-}
-
-/* Status badge */
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.status-confirmed {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status-pending {
-  background-color: #fef9c3;
-  color: #854d0e;
-}
-
-.status-cancelled {
-  background-color: #fee2e2;
-  color: #b91c1c;
-}
-
-/* Button styles */
-.btn-primary {
-  background-color: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn-primary:hover {
-  background-color: #1a252f;
-}
-
-.btn-secondary {
-  background-color: #e2e8f0;
-  color: #2c3e50;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn-secondary:hover {
-  background-color: #cbd5e1;
-}
-
-/* Loading state */
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-}
-
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #2c3e50;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Empty and error states */
-.empty-container,
-.error-container {
-  text-align: center;
-  padding: 3rem;
-  background-color: #f8fafc;
-  border-radius: 8px;
-}
-
-.error-container {
-  color: #e74c3c;
-}
-
-/* Modal styles */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-}
-
-.modal-content {
-  background-color: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #64748b;
-}
-
-.btn-close:hover {
-  color: #334155;
-}
-
-/* Form styles */
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.error-message {
-  color: #e74c3c;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-}
-
 @media (max-width: 768px) {
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .actions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-input {
-    width: 100%;
-  }
-  
   .lab-info {
     flex-direction: column;
     gap: 0.5rem;

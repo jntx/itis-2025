@@ -72,7 +72,7 @@ async function handleLogin() {
         {{ authStore.isLoading }}
       </div>
       
-      <button type="submit" :disabled="isLoading" class="login-button">
+      <button type="submit" :disabled="isLoading" class="btn-primary login-button">
         {{ isLoading ? 'Accesso in corso...' : 'Accedi' }}
       </button>
     </form>
@@ -80,6 +80,7 @@ async function handleLogin() {
 </template>
 
 <style scoped>
+/* Component-specific styles only */
 .login-container {
   max-width: 400px;
   margin: 0 auto;
@@ -97,42 +98,10 @@ h1 {
   gap: 1.5rem;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-label {
-  font-weight: bold;
-}
-
-input {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.error-message {
-  color: #e74c3c;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
 .login-button {
-  background-color: #2c3e50;
-  color: white;
-  border: none;
-  border-radius: 4px;
   padding: 0.75rem;
   font-size: 1rem;
-  cursor: pointer;
   transition: background-color 0.3s;
-}
-
-.login-button:hover:not(:disabled) {
-  background-color: #1a252f;
 }
 
 .login-button:disabled {

@@ -16,12 +16,9 @@
   </div>
 </template>
 
-<style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: block;
-    align-items: center;
-  }
+<style scoped>
+/* Component-specific styles only */
+.about {
+  min-height: 100vh;
 }
 </style>
