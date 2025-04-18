@@ -3,6 +3,7 @@ import { onMounted, ref, computed, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { usePrenotazioneModule } from '@/stores/prenotazioneModule';
 import { useLabModule } from '@/stores/labModule';
+import { useUserModule } from '@/stores/userModule';
 
 // Router e route
 const route = useRoute();
@@ -12,6 +13,7 @@ const laboratorioId = computed(() => route.params.id);
 // Store
 const prenotazioneStore = usePrenotazioneModule();
 const labStore = useLabModule();
+const userStore = useUserModule();
 
 // Reactive state
 const searchQuery = ref('');
@@ -26,7 +28,8 @@ const formData = reactive({
 });
 const formErrors = reactive({
   utente_id: '',
-  data_prenotazione: ''
+  data_prenotazione: '',
+  api: '' // Nuovo campo per gli errori API
 });
 
 // Computed properties
@@ -41,6 +44,16 @@ const filteredPrenotazioni = computed(() => {
     prenotazione.stato?.toLowerCase().includes(query)
   );
 });
+
+// Funzione per ottenere il nome completo dell'utente dato l'ID
+const getUserName = (userId) => {
+  if (!userId || !userStore.getUsers.length) return 'N/A';
+  
+  const user = userStore.getUsers.find(u => u.id == userId);
+  if (!user) return `ID: ${userId}`;
+  
+  return `${user.cognome} ${user.nome}`;
+};
 
 // Lifecycle hooks
 onMounted(async () => {
@@ -57,8 +70,11 @@ onMounted(async () => {
     
     // Carica le prenotazioni
     await prenotazioneStore.fetchPrenotazioniByLaboratorio(laboratorioId.value);
+    
+    // Carica gli utenti
+    await userStore.fetchAllUsers();
   } catch (error) {
-    console.error('Errore nel caricamento delle prenotazioni:', error);
+    console.error('Errore nel caricamento dei dati:', error);
   }
 });
 
@@ -84,8 +100,18 @@ function tornaAiLaboratori() {
   router.push({ name: 'laboratori' });
 }
 
-function openCreateModal() {
+async function openCreateModal() {
   resetForm();
+  
+  // Assicurati che gli utenti siano caricati
+  if (!userStore.getUsers.length && !userStore.isLoading) {
+    try {
+      await userStore.fetchAllUsers();
+    } catch (error) {
+      console.error('Errore nel caricamento degli utenti:', error);
+    }
+  }
+  
   showModal.value = true;
 }
 
@@ -116,8 +142,8 @@ function validateForm() {
   });
   
   // Validate required fields
-  if (!formData.utente_id.trim()) {
-    formErrors.utente_id = 'L\'ID utente è obbligatorio';
+  if (!formData.utente_id) {
+    formErrors.utente_id = 'La selezione di un utente è obbligatoria';
     isValid = false;
   }
   
@@ -134,6 +160,9 @@ async function handleSubmit() {
     return;
   }
   
+  // Reset API error
+  formErrors.api = '';
+  
   try {
     await prenotazioneStore.createPrenotazione({
       utente_id: formData.utente_id,
@@ -149,6 +178,26 @@ async function handleSubmit() {
     closeModal();
   } catch (error) {
     console.error('Errore durante il salvataggio della prenotazione:', error);
+    
+    // Gestione degli errori API
+    if (error.response && error.response.data && error.response.data.error) {
+      formErrors.api = error.response.data.error;
+      
+      // Aggiungi informazioni aggiuntive se disponibili
+      if (error.response.data.periodo_validita) {
+        formErrors.api += ` (Periodo valido: dal ${formatDate(error.response.data.periodo_validita.inizio)} al ${formatDate(error.response.data.periodo_validita.fine)})`;
+      }
+      
+      if (error.response.data.orario_laboratorio) {
+        formErrors.api += ` (Orario laboratorio: ${error.response.data.orario_laboratorio.apertura} - ${error.response.data.orario_laboratorio.chiusura})`;
+      }
+      
+      if (error.response.data.capacita) {
+        formErrors.api += ` (Capacità: ${error.response.data.capacita}, Prenotazioni attuali: ${error.response.data.prenotazioni_attuali})`;
+      }
+    } else {
+      formErrors.api = 'Si è verificato un errore durante la creazione della prenotazione. Riprova più tardi.';
+    }
   }
 }
 
@@ -251,7 +300,7 @@ function getStatusClass(stato) {
         <tbody>
           <tr v-for="prenotazione in filteredPrenotazioni" :key="prenotazione.id">
             <td>{{ prenotazione.id }}</td>
-            <td>{{ prenotazione.utente_id }}</td>
+            <td>{{ getUserName(prenotazione.utente_id) }}</td>
             <td>{{ formatDate(prenotazione.data_prenotazione) }}</td>
             <td>{{ formatTime(prenotazione.ora_inizio) }}</td>
             <td>{{ formatTime(prenotazione.ora_fine) }}</td>
@@ -276,17 +325,32 @@ function getStatusClass(stato) {
         
         <!-- Modal body -->
         <div class="modal-body">
+          <!-- Messaggio di errore API -->
+          <div v-if="formErrors.api" class="api-error-message">
+            <p>{{ formErrors.api }}</p>
+          </div>
+          
           <form @submit.prevent="handleSubmit">
             <div class="form-group">
-              <label for="utente_id">ID Utente *</label>
-              <input 
+              <label for="utente_id">Utente *</label>
+              <select 
                 id="utente_id"
                 v-model="formData.utente_id"
-                type="text"
-                placeholder="Inserisci l'ID dell'utente"
                 required
-              />
+                class="select-input"
+                :disabled="userStore.isLoading"
+              >
+                <option value="" disabled>{{ userStore.isLoading ? 'Caricamento utenti...' : 'Seleziona un utente' }}</option>
+                <option 
+                  v-for="utente in userStore.getUsers" 
+                  :key="utente.id" 
+                  :value="utente.id"
+                >
+                  {{ utente.cognome }} {{ utente.nome }} ({{ utente.username }})
+                </option>
+              </select>
               <div v-if="formErrors.utente_id" class="error-message">{{ formErrors.utente_id }}</div>
+              <div v-if="userStore.error" class="error-message">Errore nel caricamento degli utenti: {{ userStore.error }}</div>
             </div>
             
             <div class="form-group">
@@ -352,6 +416,51 @@ function getStatusClass(stato) {
 .lab-info {
   display: flex;
   gap: 2rem;
+}
+
+/* Stile per il messaggio di errore API */
+.api-error-message {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: #b91c1c;
+}
+
+.api-error-message p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.error-message {
+  color: #b91c1c;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+/* Stile per il select dropdown */
+.select-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: #fff;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #374151;
+  appearance: auto;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.select-input:focus {
+  border-color: #3b82f6;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+.select-input option {
+  padding: 0.5rem;
 }
 
 @media (max-width: 768px) {

@@ -20,7 +20,7 @@ export const usePrenotazioneModule = defineStore('prenotazione', {
       const sessionId = authStore.getSessionId
       
       if (!sessionId) {
-        this.error = 'User not authenticated'
+        this.error = 'Utente non autenticato'
         return
       }
       
@@ -33,7 +33,12 @@ export const usePrenotazioneModule = defineStore('prenotazione', {
         
         return response
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to fetch reservations'
+        // Gestione migliorata degli errori API
+        if (error.response?.data?.error) {
+          this.error = error.response.data.error
+        } else {
+          this.error = 'Errore durante il caricamento delle prenotazioni'
+        }
         throw error
       } finally {
         this.loading = false
@@ -45,7 +50,7 @@ export const usePrenotazioneModule = defineStore('prenotazione', {
       const sessionId = authStore.getSessionId
       
       if (!sessionId) {
-        this.error = 'User not authenticated'
+        this.error = 'Utente non autenticato'
         return
       }
       
@@ -62,7 +67,14 @@ export const usePrenotazioneModule = defineStore('prenotazione', {
         
         return response
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to create reservation'
+        // Gestione migliorata degli errori API
+        if (error.response?.data?.error) {
+          this.error = error.response.data.error
+        } else {
+          this.error = 'Errore durante la creazione della prenotazione'
+        }
+        
+        // Propaga l'errore originale per permettere una gestione più dettagliata nel componente
         throw error
       } finally {
         this.loading = false

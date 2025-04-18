@@ -213,6 +213,16 @@ return function (App $app) {
 	
 		return $response->withHeader('Content-Type', 'application/json');
 	});
+	
+	// Endpoint per ottenere l'elenco degli utenti attivi
+	$app->get('/api/utenti', function (Request $request, Response $response, array $args) {
+		$stmt = $this->get("db")->query("SELECT id, username, nome, cognome FROM utenti WHERE attivo = 1 ORDER BY cognome, nome");
+		$utenti = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		
+		$response->getBody()->write(json_encode($utenti));
+		
+		return $response->withHeader('Content-Type', 'application/json');
+	});
 
 	// Endpoint per creare una nuova prenotazione
 	$app->post('/api/prenotazioni', function (Request $request, Response $response, array $args) {
@@ -224,16 +234,86 @@ return function (App $app) {
 			return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
 		}
 		
+		// Recupera informazioni sul laboratorio
+		$lab_stmt = $this->get("db")->prepare("SELECT * FROM laboratori WHERE id = :id");
+		$lab_stmt->bindParam(':id', $data['laboratorio_id'], PDO::PARAM_INT);
+		$lab_stmt->execute();
+		$laboratorio = $lab_stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if (!$laboratorio) {
+			$response->getBody()->write(json_encode(['error' => 'Laboratorio non trovato']));
+			return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+		}
+		
+		// 1. Verifica che la data di prenotazione sia all'interno del periodo di validità del laboratorio
+		$data_prenotazione = $data['data_prenotazione'];
+		if ($laboratorio['data_inizio'] && $laboratorio['data_fine']) {
+			if ($data_prenotazione < $laboratorio['data_inizio'] || $data_prenotazione > $laboratorio['data_fine']) {
+				$response->getBody()->write(json_encode([
+					'error' => 'La prenotazione deve essere all\'interno del periodo di validità del laboratorio',
+					'periodo_validita' => [
+						'inizio' => $laboratorio['data_inizio'],
+						'fine' => $laboratorio['data_fine']
+					]
+				]));
+				return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+			}
+		}
+		
+		// 2. Verifica che l'orario di prenotazione sia coerente con gli orari di disponibilità del laboratorio
+		$ora_inizio = isset($data['ora_inizio']) ? $data['ora_inizio'] : null;
+		$ora_fine = isset($data['ora_fine']) ? $data['ora_fine'] : null;
+		
+		if ($ora_inizio && $ora_fine && $laboratorio['orario_apertura'] && $laboratorio['orario_chiusura']) {
+			if ($ora_inizio < $laboratorio['orario_apertura'] || $ora_fine > $laboratorio['orario_chiusura']) {
+				$response->getBody()->write(json_encode([
+					'error' => 'L\'orario di prenotazione deve essere all\'interno dell\'orario di apertura del laboratorio',
+					'orario_laboratorio' => [
+						'apertura' => $laboratorio['orario_apertura'],
+						'chiusura' => $laboratorio['orario_chiusura']
+					]
+				]));
+				return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+			}
+		}
+		
+		// 3. Verifica che il numero di prenotazioni non superi la capacità del laboratorio per lo stesso giorno e fascia oraria
+		$count_stmt = $this->get("db")->prepare(
+			"SELECT COUNT(*) as num_prenotazioni 
+			FROM prenotazioni 
+			WHERE laboratorio_id = :laboratorio_id 
+			AND data_prenotazione = :data_prenotazione 
+			AND (
+				(:ora_inizio BETWEEN ora_inizio AND ora_fine) OR
+				(:ora_fine BETWEEN ora_inizio AND ora_fine) OR
+				(ora_inizio BETWEEN :ora_inizio AND :ora_fine) OR
+				(ora_fine BETWEEN :ora_inizio AND :ora_fine)
+			)"
+		);
+		
+		$count_stmt->bindParam(':laboratorio_id', $data['laboratorio_id'], PDO::PARAM_INT);
+		$count_stmt->bindParam(':data_prenotazione', $data_prenotazione);
+		$count_stmt->bindParam(':ora_inizio', $ora_inizio);
+		$count_stmt->bindParam(':ora_fine', $ora_fine);
+		$count_stmt->execute();
+		$result = $count_stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if ($result['num_prenotazioni'] >= $laboratorio['capacita']) {
+			$response->getBody()->write(json_encode([
+				'error' => 'Il numero massimo di prenotazioni per questo laboratorio è stato raggiunto',
+				'capacita' => $laboratorio['capacita'],
+				'prenotazioni_attuali' => $result['num_prenotazioni']
+			]));
+			return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+		}
+		
+		// Se tutte le verifiche sono passate, procedi con l'inserimento
 		$stmt = $this->get("db")->prepare("INSERT INTO prenotazioni (utente_id, laboratorio_id, data_prenotazione, ora_inizio, ora_fine, stato) 
 									VALUES (:utente_id, :laboratorio_id, :data_prenotazione, :ora_inizio, :ora_fine, 'in attesa')");
 		
 		$stmt->bindParam(':utente_id', $data['utente_id'], PDO::PARAM_INT);
 		$stmt->bindParam(':laboratorio_id', $data['laboratorio_id'], PDO::PARAM_INT);
-		$stmt->bindParam(':data_prenotazione', $data['data_prenotazione']);
-		
-		// Imposta ora_inizio e ora_fine se presenti
-		$ora_inizio = isset($data['ora_inizio']) ? $data['ora_inizio'] : null;
-		$ora_fine = isset($data['ora_fine']) ? $data['ora_fine'] : null;
+		$stmt->bindParam(':data_prenotazione', $data_prenotazione);
 		$stmt->bindParam(':ora_inizio', $ora_inizio);
 		$stmt->bindParam(':ora_fine', $ora_fine);
 		
